@@ -5,7 +5,11 @@ import yargs from "yargs";
 import type { HeadData } from "@polkadot/types/interfaces";
 import type { Option } from "@polkadot/types";
 import { cryptoWaitReady } from "@polkadot/util-crypto";
-import { clearAuthorities, addAuthority } from "./spec";
+import {
+  clearAuthorities,
+  addAuthorities,
+  addAuthoritiesFromFile,
+} from "./spec";
 
 async function showSystemEvents(api: ApiPromise) {
   console.log(`Show system events`);
@@ -161,9 +165,9 @@ function run() {
         args: yargs.Arguments<{
           wasm_path: string;
           header_data: string;
-          para_id;
-          is_parachain;
-          ws_url;
+          para_id: number;
+          is_parachain: boolean;
+          ws_url: string;
         }>
       ): Promise<void> =>
         register_parachain(
@@ -230,8 +234,28 @@ function run() {
           }),
       handler: async (
         args: yargs.Arguments<{ spec_file: string; authority: string }>
-      ) => {
-        await addAuthority(args.spec_file, args.authority);
+      ): Promise<void> => {
+        addAuthorities(args.spec_file, [args.authority]);
+      },
+    })
+    .command({
+      command: "add_authorities_from_file <spec_file> <authorities_file>",
+      describe:
+        "Clear existing authorities from chainspec and add authorities with seeds from file",
+      builder: (yargs) =>
+        yargs
+          .positional("spec_file", {
+            type: "string",
+            describe: "path to chainspec file",
+          })
+          .positional("authorities_file", {
+            type: "string",
+            describe: "path to file with authority key seeds",
+          }),
+      handler: async (
+        args: yargs.Arguments<{ spec_file: string; authorities_file: string }>
+      ): Promise<void> => {
+        addAuthoritiesFromFile(args.spec_file, args.authorities_file);
       },
     })
     .parserConfiguration({
@@ -239,6 +263,7 @@ function run() {
       "parse-positional-numbers": false,
     })
     .demandCommand(1, "Choose a command from the above list")
+    .strict()
     .help().argv;
 }
 

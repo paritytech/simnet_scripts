@@ -1,6 +1,7 @@
 import { Keyring } from "@polkadot/api";
 import { cryptoWaitReady } from "@polkadot/util-crypto";
 import * as fs from "fs";
+import * as readline from "readline";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -55,46 +56,75 @@ export function clearAuthorities(spec: string): void {
 }
 
 // Add additional authorities to chain spec in `session.keys`
-export async function addAuthority(spec: string, name: string): Promise<void> {
+export async function addAuthorities(
+  spec: string,
+  names: string[]
+): Promise<void> {
   await cryptoWaitReady();
 
   const sr_keyring = new Keyring({ type: "sr25519" });
-  const sr_account = sr_keyring.createFromUri(name);
-  const sr_stash = sr_keyring.createFromUri(name);
-
   const ed_keyring = new Keyring({ type: "ed25519" });
-  const ed_account = ed_keyring.createFromUri(name);
-
-  const key = [
-    sr_stash.address,
-    sr_stash.address,
-    {
-      grandpa: ed_account.address,
-      babe: sr_account.address,
-      im_online: sr_account.address,
-      parachain_validator: sr_account.address,
-      authority_discovery: sr_account.address,
-      para_validator: sr_account.address,
-      para_assignment: sr_account.address,
-    },
-  ];
 
   const rawdata = fs.readFileSync(spec, "utf8");
   const chainSpec = JSON.parse(rawdata);
 
   const keys = getAuthorityKeys(chainSpec);
-  if (
-    keys.findIndex((element): boolean => {
-      return element[0] == sr_stash.address;
-    }) == -1
-  ) {
-    keys.push(key);
-  } else {
-    console.error(`Authority ${name} already exists in the chainspec ${spec}`);
-    return;
+
+  for (const name of names) {
+    const sr_account = sr_keyring.createFromUri(name);
+    const sr_stash = sr_keyring.createFromUri(name);
+    const ed_account = ed_keyring.createFromUri(name);
+
+    const key = [
+      sr_stash.address,
+      sr_stash.address,
+      {
+        grandpa: ed_account.address,
+        babe: sr_account.address,
+        im_online: sr_account.address,
+        parachain_validator: sr_account.address,
+        authority_discovery: sr_account.address,
+        para_validator: sr_account.address,
+        para_assignment: sr_account.address,
+      },
+    ];
+
+    if (
+      keys.findIndex((element): boolean => {
+        return element[0] == sr_stash.address;
+      }) == -1
+    ) {
+      keys.push(key);
+    } else {
+      console.error(
+        `Authority ${name} already exists in the chainspec ${spec}`
+      );
+      return;
+    }
   }
 
   const data = JSON.stringify(chainSpec, null, 2);
   fs.writeFileSync(spec, data);
-  console.log(`Added Authority ${name}`);
+}
+
+// Add additional authorities to chain spec from file with seeds
+export async function addAuthoritiesFromFile(
+  spec: string,
+  seeds_file: string
+): Promise<void> {
+  const seedStream = fs.createReadStream(seeds_file);
+
+  const rl = readline.createInterface({
+    input: seedStream,
+    crlfDelay: Infinity,
+  });
+
+  const seeds: string[] = [];
+  for await (const seed of rl) {
+    seeds.push(seed);
+  }
+
+  clearAuthorities(spec);
+
+  await addAuthorities(spec, seeds);
 }
