@@ -1,5 +1,7 @@
 stages:
   - build
+  - post-merge
+
 
 variables:                         &global-vars
   FF_GITLAB_REGISTRY_HELPER_IMAGE:   'true'
@@ -39,16 +41,13 @@ build-simnetscripts-image-and-push-temporarly-in-paritypr:
       echo "LOG INFO step 5 image $CONTAINER_IMAGE:$CI_COMMIT_SHORT_SHA built successfully"
       echo "$DOCKER_SIMNET_PASS" \
            | podman  login --username "$DOCKER_SIMNET_USER" --password-stdin docker.io
-
       podman push --format=v2s2 "$CONTAINER_IMAGE:$CI_COMMIT_SHORT_SHA"
       echo "LOG INFO step 6 image $CONTAINER_IMAGE:$CI_COMMIT_SHORT_SHA pushed successfully"
-
       echo "LOG check if need to cleanup dangling images"
       df -h | grep /var/lib/containers
       CACHE_USE_PERCENT="$(df -h | grep -vE '/var/lib/containers/.*' | grep /var/lib/containers | awk '{print $5}' | sed 's/%//g')"
       test -n "$CACHE_USE_PERCENT" \
               || ( echo "This variable can't be emtpy" ; exit 1 )
-
       if test "$CACHE_USE_PERCENT" -ge 80 ; then 
         echo "LOG INFO need to cleanup cache, value: $CACHE_USE_PERCENT"
         time podman rmi -f $(podman images -q -f "dangling=true")
@@ -81,14 +80,12 @@ build-simnetscripts-image-and-push-temporarly-in-paritypr:
 push-simnetscripts-image-to-paritytech:
   variables:
     <<:                            *global-vars
-    UPSTREAM_BUILD_TRIGGER:        $BUILD_SUBFLOOD
   stage:                           post-merge
-  needs:
-    - job:                         test-simnetscripts-image
+#  needs:
+#    - job:                         test-simnetscripts-image
   image:                           quay.io/buildah/stable
   rules:
     - if: '$CI_COMMIT_BRANCH == "master"'
-    - if: '$UPSTREAM_BUILD_TRIGGER == "true"'
   tags:
     - parity-simnetscripts-build
   before_script:
