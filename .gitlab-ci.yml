@@ -86,7 +86,6 @@ push-simnetscripts-image-to-paritytech:
   image:                           quay.io/buildah/stable
   rules:
     - if: '$CI_COMMIT_BRANCH == "master"'
-    - if: '$UPSTREAM_BUILD_TRIGGER == "true"'
   tags:
     - parity-simnetscripts-build
   before_script:
