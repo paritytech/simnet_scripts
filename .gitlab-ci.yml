@@ -85,7 +85,7 @@ push-simnetscripts-image-to-paritytech:
 #    - job:                         test-simnetscripts-image
   image:                           quay.io/buildah/stable
   rules:
-    - if: '$CI_COMMIT_BRANCH == "master"'
+    - if: '$CI_COMMIT_BRANCH == "main"'
   tags:
     - parity-simnetscripts-build
   before_script:
