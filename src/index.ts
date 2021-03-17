@@ -2,8 +2,8 @@ import { ApiPromise, WsProvider } from "@polkadot/api";
 import { Keyring } from "@polkadot/keyring";
 import fs from "fs";
 import yargs from "yargs";
-import type { HeadData } from "@polkadot/types/interfaces";
-import type { Option } from "@polkadot/types";
+import type { HeadData, ParaId } from "@polkadot/types/interfaces";
+import type { Option, Vec, u32 } from "@polkadot/types";
 import { cryptoWaitReady } from "@polkadot/util-crypto";
 import {
   clearAuthorities,
@@ -109,6 +109,12 @@ async function test_parachain(
   height_limit: number
 ): Promise<void> {
   const api = await createApi(ws_url);
+  const parachains = await api.query.paras.parachains<Vec<ParaId>>();
+  if (!parachains.find(id => id.toString() == para_id.toString())) {
+    const err_str = `Parachain with id ${para_id} is not registered, registered parachains ${parachains.toString()}`;
+    throw Error(err_str);
+  }
+  console.log("Registered parachains: " + parachains.toString());
   const optHeadData = await api.query.paras.heads<Option<HeadData>>(para_id);
 
   if (optHeadData.isSome) {
