@@ -1,5 +1,7 @@
 stages:
   - build
+  - post-merge
+
 
 variables:                         &global-vars
   FF_GITLAB_REGISTRY_HELPER_IMAGE:   'true'
