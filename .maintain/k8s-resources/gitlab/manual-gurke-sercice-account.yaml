@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: simnetscripts-service-json-key
+data:
+  simnetscripts-service-json-key: YOUR_SERVICE_ACCOUNT_BASE64_KEY
+  # Download service account key from 1password -> Simnet-Team -> simnetscripts-service-key.json
+  # cat secrets/simnetscripts-service-key.json | base64 -w 0
+
+# Create the google api key file here:
+# https://console.developers.google.com/apis/credentials
+
+

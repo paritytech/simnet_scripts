@@ -1,0 +1,24 @@
+# You can create this pod in the namespace where you cache volume runs to debug stuff
+apiVersion: v1
+kind: Pod
+metadata:
+  name: cleanup-cache-pod
+  namespace: kube-system
+spec:
+  containers:
+  - name: cleanup-cache
+    image: "quay.io/podman/stable"
+    imagePullPolicy: Always
+    command: ["/bin/sh"]
+    args: ["-c", "tail -f /dev/null"]
+    volumeMounts:
+    - name: cache-layers-storage
+      mountPath: /var/lib/containers
+      readOnly: false
+    securityContext:
+      privileged: true
+      
+  volumes:
+  - name: cache-layers-storage
+    persistentVolumeClaim:
+      claimName: simnetscripts-ssd-gitlab-runner-cache

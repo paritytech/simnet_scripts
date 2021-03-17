@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: simnetscripts-ssd-gitlab-runner-cache
+  namespace: kube-system
+spec:
+  accessModes:
+    - ReadOnlyMany
+    - ReadWriteOnce
+  storageClassName: ssd
+  resources:
+    requests:
+      storage: 50Gi
+
