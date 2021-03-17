@@ -29,6 +29,10 @@ interface ChainSpec {
 
 /* eslint-enable @typescript-eslint/no-explicit-any */
 
+function nameCase(string: string) {
+  return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
 // Get authority keys from within chainSpec data
 function getAuthorityKeys(chainSpec: ChainSpec) {
   // this is the most recent spec struct
@@ -40,6 +44,19 @@ function getAuthorityKeys(chainSpec: ChainSpec) {
   }
   // Backward compatibility
   return chainSpec.genesis.runtime.palletSession.keys;
+}
+
+// Get balances spec from chainSpec data
+function getAccountBalances(chainSpec: ChainSpec) {
+  if (
+    chainSpec.genesis.runtime.runtime_genesis_config &&
+    chainSpec.genesis.runtime.runtime_genesis_config.palletBalances
+  ) {
+    return chainSpec.genesis.runtime.runtime_genesis_config.palletBalances
+      .balances;
+  }
+
+  return chainSpec.genesis.runtime.palletBalances.keys;
 }
 
 // Remove all existing keys from `session.keys`
@@ -69,11 +86,15 @@ export async function addAuthorities(
   const chainSpec = JSON.parse(rawdata);
 
   const keys = getAuthorityKeys(chainSpec);
+  const balances = getAccountBalances(chainSpec);
 
   for (const name of names) {
-    const sr_account = sr_keyring.createFromUri(name);
-    const sr_stash = sr_keyring.createFromUri(name);
-    const ed_account = ed_keyring.createFromUri(name);
+    const sr_account = sr_keyring.createFromUri(`//${nameCase(name)}`);
+    const sr_stash = sr_keyring.createFromUri(`//${nameCase(name)}//stash`);
+    const ed_account = ed_keyring.createFromUri(`//${nameCase(name)}`);
+
+    console.log("Account " + sr_stash.address);
+    console.log("Stash" + sr_stash.address);
 
     const key = [
       sr_stash.address,
@@ -82,7 +103,6 @@ export async function addAuthorities(
         grandpa: ed_account.address,
         babe: sr_account.address,
         im_online: sr_account.address,
-        parachain_validator: sr_account.address,
         authority_discovery: sr_account.address,
         para_validator: sr_account.address,
         para_assignment: sr_account.address,
@@ -95,6 +115,13 @@ export async function addAuthorities(
       }) == -1
     ) {
       keys.push(key);
+      if (
+        balances.findIndex((element): boolean => {
+          return element[0] == sr_stash.address;
+        }) == -1
+      ) {
+        balances.push([sr_stash.address, 1000000000000000000]);
+      }
     } else {
       console.error(
         `Authority ${name} already exists in the chainspec ${spec}`
