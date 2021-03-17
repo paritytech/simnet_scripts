@@ -179,7 +179,7 @@ function run() {
         ),
     })
     .command({
-      command: "test_parachain [ws_url] [height_limit]",
+      command: "test_parachain [ws_url] [para_id] [height_limit]",
       describe: "Test a parachain",
       builder: (yargs) =>
         yargs
