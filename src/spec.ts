@@ -93,9 +93,6 @@ export async function addAuthorities(
     const sr_stash = sr_keyring.createFromUri(`//${nameCase(name)}//stash`);
     const ed_account = ed_keyring.createFromUri(`//${nameCase(name)}`);
 
-    console.log("Account " + sr_stash.address);
-    console.log("Stash" + sr_stash.address);
-
     const key = [
       sr_stash.address,
       sr_stash.address,
