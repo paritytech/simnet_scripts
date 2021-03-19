@@ -34,4 +34,3 @@ WORKDIR /home/nonroot/gurke
 # Tini allows us to avoid several Docker edge cases, see https://github.com/krallin/tini
 ENTRYPOINT ["tini", "--", "bash"]
 # Run your program under Tini
-
