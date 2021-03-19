@@ -103,3 +103,4 @@ push-simnetscripts-image-to-paritytech:
     - 'buildah push --format=v2s2 paritytech/simnetscripts:latest'
   after_script:
     - buildah logout docker.io
+# dummy
