@@ -80,12 +80,14 @@ build-simnetscripts-image-and-push-temporarly-in-paritypr:
 push-simnetscripts-image-to-paritytech:
   variables:
     <<:                            *global-vars
+    UPSTREAM_BUILD_TRIGGER:        $BUILD_SIMNETSCRIPTS
   stage:                           post-merge
 #  needs:
 #    - job:                         test-simnetscripts-image
   image:                           quay.io/buildah/stable
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: '$UPSTREAM_BUILD_TRIGGER == "true"'
   tags:
     - parity-simnetscripts-build
   before_script:
