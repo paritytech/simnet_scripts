@@ -5,7 +5,7 @@ WORKDIR /root
 COPY --from=paritytech/pickle_rick:latest /home/nonroot/gurke /home/nonroot/gurke
 
 # install rsync
-RUN apt-get install rsync
+RUN apt-get install -y rsync
 # install nodejs 14.0 or >
 # https://github.com/nodesource/distributions/blob/master/README.md#installation-instructions
 RUN curl -fsSL https://deb.nodesource.com/setup_current.x | bash -
