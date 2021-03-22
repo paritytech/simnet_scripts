@@ -23,9 +23,9 @@ RUN npm install  typescript
 # This will generate dist dir which is needed in order for the script to run
 RUN npm run build  
 # Rsync node modules in order to resolve symlinks
-rsync --archive --verbose --copy-links ./node_modules/ ./node_modules_cp/
-rm -r ./node_modules/
-mv ./node_modules_cp/ ./node_modules/
+RUN rsync --archive --verbose --copy-links ./node_modules/ ./node_modules_cp/
+RUN rm -r ./node_modules/
+RUN mv ./node_modules_cp/ ./node_modules/
 # place index.js in a place where gurke expects it
 RUN ln -s "$(pwd)"/dist/index.js /usr/local/bin/simnet_scripts
 
