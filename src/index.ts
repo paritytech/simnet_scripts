@@ -1,9 +1,9 @@
 import { ApiPromise, WsProvider } from "@polkadot/api";
 import { Keyring } from "@polkadot/keyring";
 import fs from "fs";
-import yargs from "yargs";
+import yargs, { Argv } from "yargs";
 import type { HeadData, ParaId } from "@polkadot/types/interfaces";
-import type { Option, Vec, u32 } from "@polkadot/types";
+import type { Option, Vec, u32, bool } from "@polkadot/types";
 import { cryptoWaitReady } from "@polkadot/util-crypto";
 import {
   clearAuthorities,
@@ -35,14 +35,18 @@ async function showSystemEvents(api: ApiPromise) {
 async function createApi(url: string) {
   const provider = new WsProvider(url);
 
+  console.log("API creation");
+
   const apiRequest = await Promise.race([
     ApiPromise.create({ provider }),
     new Promise((_, reject) =>
       setTimeout(() => reject(new Error("timeout")), 3000)
     ),
   ]).catch(function (err) {
+    console.log("API creation error");
     throw Error(`Timeout error: ` + err.toString());
   });
+  console.log("API creation finished");
   return apiRequest as ApiPromise;
 }
 
@@ -103,18 +107,55 @@ async function register_parachain(
   await new Promise((r) => setTimeout(r, 120000));
 }
 
+async function test_registration(
+  api: ApiPromise,
+  para_id: number
+): Promise<boolean> {
+  const parachains = await api.query.paras.parachains<Vec<ParaId>>();
+  if (!parachains.find(id => id.toString() == para_id.toString())) {
+    return false;
+  }
+  return true;
+}
+
+async function check_registration(
+  ws_url: string,
+  para_id: number
+): Promise<void> {
+  const api = await createApi(ws_url);
+  if (!await test_registration(api, para_id)) {
+    const err_str = `Parachain with id ${para_id} is not registered}`;
+    throw Error(err_str);
+  }
+}
+
 async function test_parachain(
   ws_url: string,
   para_id: number,
   height_limit: number
 ): Promise<void> {
   const api = await createApi(ws_url);
-  const parachains = await api.query.paras.parachains<Vec<ParaId>>();
-  if (!parachains.find(id => id.toString() == para_id.toString())) {
-    const err_str = `Parachain with id ${para_id} is not registered, registered parachains ${parachains.toString()}`;
-    throw Error(err_str);
+
+  let break_condition = false;
+  let attempt = 0;
+  while (!break_condition) {
+    //check registration every 2 seconds
+    await new Promise(r => setTimeout(r, 2000));
+
+    if (await test_registration(api, para_id)) {
+        if (attempt == 100) {
+            // time limit reached
+            break_condition = true;
+            const err_str = `Timeout for parachain registration reached, ${para_id} is not registered}`;
+            throw Error(err_str);
+        } else {
+            attempt++;
+        }
+    } else {
+        break_condition = true;
+    }
   }
-  console.log("Registered parachains: " + parachains.toString());
+
   const optHeadData = await api.query.paras.heads<Option<HeadData>>(para_id);
 
   if (optHeadData.isSome) {
@@ -135,9 +176,8 @@ async function test_parachain(
     throw Error(`Cannot retrieve HeadData for chain: ` + para_id.toString());
   }
 }
-
-function run() {
-  yargs(process.argv.slice(2))
+async function run() {
+  const parser = yargs(process.argv.slice(2))
     .command({
       command:
         "register_parachain <wasm_path> <header_data> <para_id> [is_parachain] [ws_url]",
@@ -214,6 +254,29 @@ function run() {
       },
     })
     .command({
+      command: "check_registration [ws_url] [para_id]",
+      describe: "Check if the parachain is registered",
+      builder: (yargs) =>
+        yargs
+          .positional("ws_url", {
+            type: "string",
+            describe: "path to websocket api point",
+            default: "ws://localhost:8080",
+          })
+          .positional("para_id", {
+            type: "number",
+            describe: "Id of the para to test",
+          }),
+      handler: async (
+        args: yargs.Arguments<{
+          ws_url: string;
+          para_id: number;
+        }>
+      ): Promise<void> => {
+        await check_registration(args.ws_url, args.para_id);
+      },
+    })
+    .command({
       command: "clear_authorities <spec_file>",
       describe: "Remove all authorities from the chainspec file",
       builder: (yargs) =>
@@ -270,11 +333,15 @@ function run() {
     })
     .demandCommand(1, "Choose a command from the above list")
     .strict()
-    .help().argv;
-}
+    .help();
 
-try {
-  run();
-} catch (err) {
-  console.error(err);
-}
+    parser.parse();
+  }
+
+run().then(function() {
+  console.log("Done");
+  process.exit(0);
+}).catch(function(err) {
+  console.log("Error: " + err.toString());
+  process.exit(1);
+});
