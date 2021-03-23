@@ -20,7 +20,7 @@
     chalk "^2.0.0"
     js-tokens "^4.0.0"
 
-"@babel/runtime@^7.13.9":
+"@babel/runtime@^7.13.10", "@babel/runtime@^7.13.9":
   version "7.13.10"
   resolved "https://registry.npmjs.org/@babel/runtime/-/runtime-7.13.10.tgz"
   dependencies:
@@ -62,32 +62,31 @@
     "@nodelib/fs.scandir" "2.1.4"
     fastq "^1.6.0"
 
-"@polkadot/api-derive@4.1.1":
-  version "4.1.1"
-  resolved "https://registry.npmjs.org/@polkadot/api-derive/-/api-derive-4.1.1.tgz"
+"@polkadot/api-derive@4.2.1":
+  version "4.2.1"
+  resolved "https://registry.yarnpkg.com/@polkadot/api-derive/-/api-derive-4.2.1.tgz#848a2a9ef947f08660af2571f72ca2b06969f2e3"
   dependencies:
-    "@babel/runtime" "^7.13.9"
-    "@polkadot/api" "4.1.1"
-    "@polkadot/rpc-core" "4.1.1"
-    "@polkadot/types" "4.1.1"
+    "@babel/runtime" "^7.13.10"
+    "@polkadot/api" "4.2.1"
+    "@polkadot/rpc-core" "4.2.1"
+    "@polkadot/types" "4.2.1"
     "@polkadot/util" "^6.0.5"
     "@polkadot/util-crypto" "^6.0.5"
     "@polkadot/x-rxjs" "^6.0.5"
     bn.js "^4.11.9"
 
-"@polkadot/api@4.1.1", "@polkadot/api@^4.1.1":
-  version "4.1.1"
-  resolved "https://registry.yarnpkg.com/@polkadot/api/-/api-4.1.1.tgz#8310789d3fbbadfc0c39b305c341c8f5b67ff0b9"
-  integrity sha512-/ZZrCxxhZgf4ruIHm2Wx4WUYwLKNtUC3K+z07tJjVoBhNbkIPRBkNaVVDMfZL9jgxCYBgW1xLV8YU6crk8VriA==
+"@polkadot/api@4.2.1", "@polkadot/api@^4.2.1":
+  version "4.2.1"
+  resolved "https://registry.yarnpkg.com/@polkadot/api/-/api-4.2.1.tgz#8eb0997dc148a34a4aca3a0dcaabad9954565909"
   dependencies:
-    "@babel/runtime" "^7.13.9"
-    "@polkadot/api-derive" "4.1.1"
+    "@babel/runtime" "^7.13.10"
+    "@polkadot/api-derive" "4.2.1"
     "@polkadot/keyring" "^6.0.5"
-    "@polkadot/metadata" "4.1.1"
-    "@polkadot/rpc-core" "4.1.1"
-    "@polkadot/rpc-provider" "4.1.1"
-    "@polkadot/types" "4.1.1"
-    "@polkadot/types-known" "4.1.1"
+    "@polkadot/metadata" "4.2.1"
+    "@polkadot/rpc-core" "4.2.1"
+    "@polkadot/rpc-provider" "4.2.1"
+    "@polkadot/types" "4.2.1"
+    "@polkadot/types-known" "4.2.1"
     "@polkadot/util" "^6.0.5"
     "@polkadot/util-crypto" "^6.0.5"
     "@polkadot/x-rxjs" "^6.0.5"
@@ -97,19 +96,18 @@
 "@polkadot/keyring@^6.0.5":
   version "6.0.5"
   resolved "https://registry.yarnpkg.com/@polkadot/keyring/-/keyring-6.0.5.tgz#b684f354476e96c657a7e8d3e5f0c090e1178b31"
-  integrity sha512-v9Tmu+eGZnWpLzxHUj5AIvmfX0uCHWShtF90zvaLvMXLFRWfeuaFnZwdZ+fNkXsrbI0R/w1gRtpFqzsT7QUbVw==
   dependencies:
     "@babel/runtime" "^7.13.9"
     "@polkadot/util" "6.0.5"
     "@polkadot/util-crypto" "6.0.5"
 
-"@polkadot/metadata@4.1.1":
-  version "4.1.1"
-  resolved "https://registry.npmjs.org/@polkadot/metadata/-/metadata-4.1.1.tgz"
+"@polkadot/metadata@4.2.1":
+  version "4.2.1"
+  resolved "https://registry.yarnpkg.com/@polkadot/metadata/-/metadata-4.2.1.tgz#7bff99e44992708469e7b2aa70d0865637d8febe"
   dependencies:
-    "@babel/runtime" "^7.13.9"
-    "@polkadot/types" "4.1.1"
-    "@polkadot/types-known" "4.1.1"
+    "@babel/runtime" "^7.13.10"
+    "@polkadot/types" "4.2.1"
+    "@polkadot/types-known" "4.2.1"
     "@polkadot/util" "^6.0.5"
     "@polkadot/util-crypto" "^6.0.5"
     bn.js "^4.11.9"
@@ -120,23 +118,23 @@
   dependencies:
     "@babel/runtime" "^7.13.9"
 
-"@polkadot/rpc-core@4.1.1":
-  version "4.1.1"
-  resolved "https://registry.npmjs.org/@polkadot/rpc-core/-/rpc-core-4.1.1.tgz"
+"@polkadot/rpc-core@4.2.1":
+  version "4.2.1"
+  resolved "https://registry.yarnpkg.com/@polkadot/rpc-core/-/rpc-core-4.2.1.tgz#249f2e8f359450e365b0784d494814c7348e9a3e"
   dependencies:
-    "@babel/runtime" "^7.13.9"
-    "@polkadot/metadata" "4.1.1"
-    "@polkadot/rpc-provider" "4.1.1"
-    "@polkadot/types" "4.1.1"
+    "@babel/runtime" "^7.13.10"
+    "@polkadot/metadata" "4.2.1"
+    "@polkadot/rpc-provider" "4.2.1"
+    "@polkadot/types" "4.2.1"
     "@polkadot/util" "^6.0.5"
     "@polkadot/x-rxjs" "^6.0.5"
 
-"@polkadot/rpc-provider@4.1.1":
-  version "4.1.1"
-  resolved "https://registry.npmjs.org/@polkadot/rpc-provider/-/rpc-provider-4.1.1.tgz"
+"@polkadot/rpc-provider@4.2.1":
+  version "4.2.1"
+  resolved "https://registry.yarnpkg.com/@polkadot/rpc-provider/-/rpc-provider-4.2.1.tgz#2dbb217773a57fde2a70fc15628e2682e3ac81f8"
   dependencies:
-    "@babel/runtime" "^7.13.9"
-    "@polkadot/types" "4.1.1"
+    "@babel/runtime" "^7.13.10"
+    "@polkadot/types" "4.2.1"
     "@polkadot/util" "^6.0.5"
     "@polkadot/util-crypto" "^6.0.5"
     "@polkadot/x-fetch" "^6.0.5"
@@ -145,22 +143,22 @@
     bn.js "^4.11.9"
     eventemitter3 "^4.0.7"
 
-"@polkadot/types-known@4.1.1":
-  version "4.1.1"
-  resolved "https://registry.npmjs.org/@polkadot/types-known/-/types-known-4.1.1.tgz"
+"@polkadot/types-known@4.2.1":
+  version "4.2.1"
+  resolved "https://registry.yarnpkg.com/@polkadot/types-known/-/types-known-4.2.1.tgz#0f1ccef363359de0370cd5b3cc3e6dfe51a18f38"
   dependencies:
-    "@babel/runtime" "^7.13.9"
+    "@babel/runtime" "^7.13.10"
     "@polkadot/networks" "^6.0.5"
-    "@polkadot/types" "4.1.1"
+    "@polkadot/types" "4.2.1"
     "@polkadot/util" "^6.0.5"
     bn.js "^4.11.9"
 
-"@polkadot/types@4.1.1", "@polkadot/types@^4.1.1":
-  version "4.1.1"
-  resolved "https://registry.npmjs.org/@polkadot/types/-/types-4.1.1.tgz"
+"@polkadot/types@4.2.1", "@polkadot/types@^4.2.1":
+  version "4.2.1"
+  resolved "https://registry.yarnpkg.com/@polkadot/types/-/types-4.2.1.tgz#7be97d3abda4bb3f9031b43602062ed464596696"
   dependencies:
-    "@babel/runtime" "^7.13.9"
-    "@polkadot/metadata" "4.1.1"
+    "@babel/runtime" "^7.13.10"
+    "@polkadot/metadata" "4.2.1"
     "@polkadot/util" "^6.0.5"
     "@polkadot/util-crypto" "^6.0.5"
     "@polkadot/x-rxjs" "^6.0.5"

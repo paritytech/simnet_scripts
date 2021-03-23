@@ -1,9 +1,9 @@
 import { ApiPromise, WsProvider } from "@polkadot/api";
 import { Keyring } from "@polkadot/keyring";
 import fs from "fs";
-import yargs, { Argv } from "yargs";
+import yargs from "yargs";
 import type { HeadData, ParaId } from "@polkadot/types/interfaces";
-import type { Option, Vec, u32, bool } from "@polkadot/types";
+import type { Option, Vec } from "@polkadot/types";
 import { cryptoWaitReady } from "@polkadot/util-crypto";
 import {
   clearAuthorities,
@@ -35,8 +35,6 @@ async function showSystemEvents(api: ApiPromise) {
 async function createApi(url: string) {
   const provider = new WsProvider(url);
 
-  console.log("API creation");
-
   const apiRequest = await Promise.race([
     ApiPromise.create({ provider }),
     new Promise((_, reject) =>
@@ -46,7 +44,6 @@ async function createApi(url: string) {
     console.log("API creation error");
     throw Error(`Timeout error: ` + err.toString());
   });
-  console.log("API creation finished");
   return apiRequest as ApiPromise;
 }
 
@@ -105,6 +102,7 @@ async function register_parachain(
 
   await showSystemEvents(api);
   await new Promise((r) => setTimeout(r, 120000));
+  process.exit(0);
 }
 
 async function test_registration(
@@ -127,6 +125,8 @@ async function check_registration(
     const err_str = `Parachain with id ${para_id} is not registered}`;
     throw Error(err_str);
   }
+  console.log("Parachain is registered");
+  process.exit(0);
 }
 
 async function test_parachain(
@@ -175,8 +175,9 @@ async function test_parachain(
   } else {
     throw Error(`Cannot retrieve HeadData for chain: ` + para_id.toString());
   }
+  process.exit(0);
 }
-async function run() {
+function run() {
   const parser = yargs(process.argv.slice(2))
     .command({
       command:
@@ -272,9 +273,8 @@ async function run() {
           ws_url: string;
           para_id: number;
         }>
-      ): Promise<void> => {
-        await check_registration(args.ws_url, args.para_id);
-      },
+      ): Promise<void> =>
+        check_registration(args.ws_url, args.para_id),
     })
     .command({
       command: "clear_authorities <spec_file>",
@@ -333,15 +333,12 @@ async function run() {
     })
     .demandCommand(1, "Choose a command from the above list")
     .strict()
-    .help();
-
-    parser.parse();
+    .help().argv;
   }
 
-run().then(function() {
-  console.log("Done");
-  process.exit(0);
-}).catch(function(err) {
-  console.log("Error: " + err.toString());
-  process.exit(1);
-});
+  try {
+    run();
+  } catch (err) {
+    console.error(err);
+    process.exit(1);
+  }
