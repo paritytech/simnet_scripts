@@ -102,7 +102,7 @@ async function register_parachain(
 
   await showSystemEvents(api);
   await new Promise((r) => setTimeout(r, 120000));
-  process.exit(0);
+  await api.disconnect();
 }
 
 async function test_registration(
@@ -126,7 +126,7 @@ async function check_registration(
     throw Error(err_str);
   }
   console.log("Parachain is registered");
-  process.exit(0);
+  await api.disconnect();
 }
 
 async function test_parachain(
@@ -142,7 +142,7 @@ async function test_parachain(
     //check registration every 2 seconds
     await new Promise(r => setTimeout(r, 2000));
 
-    if (await test_registration(api, para_id)) {
+    if (!(await test_registration(api, para_id))) {
         if (attempt == 100) {
             // time limit reached
             break_condition = true;
@@ -155,6 +155,8 @@ async function test_parachain(
         break_condition = true;
     }
   }
+  console.log("Parachain registered, wait a bit and check its height");
+  await new Promise((r) => setTimeout(r, 60000));
 
   const optHeadData = await api.query.paras.heads<Option<HeadData>>(para_id);
 
@@ -175,7 +177,7 @@ async function test_parachain(
   } else {
     throw Error(`Cannot retrieve HeadData for chain: ` + para_id.toString());
   }
-  process.exit(0);
+  await api.disconnect();
 }
 function run() {
   const parser = yargs(process.argv.slice(2))
