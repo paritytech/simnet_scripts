@@ -58,12 +58,14 @@ async function register_parachain(
   let wasm_data = "";
   try {
     wasm_data = fs.readFileSync(wasm_path, "utf8");
+    wasm_data = wasm_data.trim();
   } catch (err) {
     throw Error("Cannot read wasm from file: " + err);
   }
   let header_data = "";
   try {
     header_data = fs.readFileSync(header_path, "utf8");
+    header_data = header_data.trim();
   } catch (err) {
     throw Error("Cannot read header from file: " + err);
   }
@@ -110,7 +112,7 @@ async function test_registration(
   para_id: number
 ): Promise<boolean> {
   const parachains = await api.query.paras.parachains<Vec<ParaId>>();
-  if (!parachains.find(id => id.toString() == para_id.toString())) {
+  if (!parachains.find((id) => id.toString() == para_id.toString())) {
     return false;
   }
   return true;
@@ -121,7 +123,7 @@ async function check_registration(
   para_id: number
 ): Promise<void> {
   const api = await createApi(ws_url);
-  if (!await test_registration(api, para_id)) {
+  if (!(await test_registration(api, para_id))) {
     const err_str = `Parachain with id ${para_id} is not registered}`;
     throw Error(err_str);
   }
@@ -140,19 +142,19 @@ async function test_parachain(
   let attempt = 0;
   while (!break_condition) {
     //check registration every 2 seconds
-    await new Promise(r => setTimeout(r, 2000));
+    await new Promise((r) => setTimeout(r, 2000));
 
     if (!(await test_registration(api, para_id))) {
-        if (attempt == 100) {
-            // time limit reached
-            break_condition = true;
-            const err_str = `Timeout for parachain registration reached, ${para_id} is not registered}`;
-            throw Error(err_str);
-        } else {
-            attempt++;
-        }
-    } else {
+      if (attempt == 100) {
+        // time limit reached
         break_condition = true;
+        const err_str = `Timeout for parachain registration reached, ${para_id} is not registered}`;
+        throw Error(err_str);
+      } else {
+        attempt++;
+      }
+    } else {
+      break_condition = true;
     }
   }
   console.log("Parachain registered, wait a bit and check its height");
@@ -275,8 +277,7 @@ function run() {
           ws_url: string;
           para_id: number;
         }>
-      ): Promise<void> =>
-        check_registration(args.ws_url, args.para_id),
+      ): Promise<void> => check_registration(args.ws_url, args.para_id),
     })
     .command({
       command: "clear_authorities <spec_file>",
@@ -336,11 +337,11 @@ function run() {
     .demandCommand(1, "Choose a command from the above list")
     .strict()
     .help().argv;
-  }
+}
 
-  try {
-    run();
-  } catch (err) {
-    console.error(err);
-    process.exit(1);
-  }
+try {
+  run();
+} catch (err) {
+  console.error(err);
+  process.exit(1);
+}
