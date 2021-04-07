@@ -11,6 +11,16 @@ import {
   addAuthoritiesFromFile,
 } from "./spec";
 
+function loadTypeDef(types: string): object {
+  try {
+    const rawdata = fs.readFileSync(types, { encoding: "utf-8" });
+    return JSON.parse(rawdata);
+  } catch {
+    console.error("failed to load parachain typedef file");
+    process.exit(1);
+  }
+}
+
 async function showSystemEvents(api: ApiPromise) {
   console.log(`Show system events`);
   api.query.system.events((events) => {
@@ -32,19 +42,18 @@ async function showSystemEvents(api: ApiPromise) {
   });
 }
 
-async function createApi(url: string) {
+async function createApi(types_path: string, url: string) {
   const provider = new WsProvider(url);
+
+  let types = {};
+  if (types_path != "") {
+    types = loadTypeDef(types_path);
+  }
 
   const apiRequest = await Promise.race([
     ApiPromise.create({
       provider,
-      types: {
-        Header: {
-          number: "u64",
-          parent_hash: "Hash",
-          post_state: "Hash",
-        },
-      },
+      types,
     }),
     new Promise((_, reject) =>
       setTimeout(() => reject(new Error("timeout")), 3000)
@@ -81,7 +90,7 @@ async function register_parachain(
 
   const keyring = new Keyring({ type: "sr25519" });
   const alice = keyring.addFromUri("//Alice");
-  const api = await createApi(ws_url);
+  const api = await createApi("", ws_url);
   const aliceNonce = (
     await api.query.system.account(alice.address)
   ).nonce.toNumber();
@@ -131,7 +140,7 @@ async function check_registration(
   ws_url: string,
   para_id: number
 ): Promise<void> {
-  const api = await createApi(ws_url);
+  const api = await createApi("", ws_url);
   if (!(await test_registration(api, para_id))) {
     const err_str = `Parachain with id ${para_id} is not registered}`;
     throw Error(err_str);
@@ -141,11 +150,12 @@ async function check_registration(
 }
 
 async function test_parachain(
+  parachain_types: string,
   ws_url: string,
   para_id: number,
   height_limit: number
 ): Promise<void> {
-  const api = await createApi(ws_url);
+  const api = await createApi(parachain_types, ws_url);
 
   let break_condition = false;
   let attempt = 0;
@@ -239,10 +249,16 @@ function run() {
         ),
     })
     .command({
-      command: "test_parachain [ws_url] [para_id] [height_limit]",
+      command:
+        "test_parachain [parachain_types] [ws_url] [para_id] [height_limit]",
       describe: "Test a parachain",
       builder: (yargs) =>
         yargs
+          .positional("parachain_types", {
+            type: "string",
+            describe: "path to custom types of the parachain",
+            default: "",
+          })
           .positional("ws_url", {
             type: "string",
             describe: "path to websocket api point",
@@ -259,12 +275,18 @@ function run() {
           }),
       handler: async (
         args: yargs.Arguments<{
+          parachain_types: string;
           ws_url: string;
           para_id: number;
           height_limit: number;
         }>
       ): Promise<void> => {
-        test_parachain(args.ws_url, args.para_id, args.height_limit);
+        test_parachain(
+          args.parachain_types,
+          args.ws_url,
+          args.para_id,
+          args.height_limit
+        );
       },
     })
     .command({
