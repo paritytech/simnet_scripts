@@ -36,7 +36,16 @@ async function createApi(url: string) {
   const provider = new WsProvider(url);
 
   const apiRequest = await Promise.race([
-    ApiPromise.create({ provider }),
+    ApiPromise.create({
+      provider,
+      types: {
+        Header: {
+          number: "u64",
+          parent_hash: "Hash",
+          post_state: "Hash",
+        },
+      },
+    }),
     new Promise((_, reject) =>
       setTimeout(() => reject(new Error("timeout")), 3000)
     ),
