@@ -121,8 +121,7 @@ async function register_parachain(
       }
     });
 
-  await showSystemEvents(api);
-  await new Promise((r) => setTimeout(r, 120000));
+  await new Promise((r) => setTimeout(r, 8000));
   await api.disconnect();
 }
 
