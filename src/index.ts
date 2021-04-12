@@ -11,6 +11,16 @@ import {
   addAuthoritiesFromFile,
 } from "./spec";
 
+interface RegisterParachainsConfig {
+  parachains: ParachainConfig[];
+}
+
+interface ParachainConfig {
+  genesis_path: string;
+  wasm_path: string;
+  id: string;
+}
+
 function loadTypeDef(types: string): object {
   try {
     const rawdata = fs.readFileSync(types, { encoding: "utf-8" });
@@ -63,6 +73,112 @@ async function createApi(types_path: string, url: string) {
     throw Error(`Timeout error: ` + err.toString());
   });
   return apiRequest as ApiPromise;
+}
+
+async function register_parachains(
+  config_path: string,
+  ws_url: string
+): Promise<void> {
+  await cryptoWaitReady();
+
+  const config_contents = fs.readFileSync(config_path, "utf8");
+  const config: RegisterParachainsConfig = JSON.parse(config_contents);
+
+  const keyring = new Keyring({ type: "sr25519" });
+  const alice = keyring.addFromUri("//Alice");
+  const api = await createApi("", ws_url);
+  let nonce = (await api.query.system.account(alice.address)).nonce.toNumber();
+
+  for (const parachain of config.parachains) {
+    const wasm_data = read_genesis_wasm(parachain.wasm_path);
+    const genesis_state = read_genesis_state(parachain.genesis_path);
+
+    await register_parachain_new(
+      api,
+      parachain.id,
+      wasm_data,
+      genesis_state,
+      nonce
+    );
+
+    nonce += 1;
+  }
+}
+
+function read_genesis_wasm(wasm_path: string): string {
+  let wasm_data;
+
+  try {
+    wasm_data = fs.readFileSync(wasm_path, "utf8");
+  } catch (err) {
+    throw Error("Cannot read wasm data from file: " + err);
+  }
+
+  return wasm_data.trim();
+}
+
+function read_genesis_state(genesis_path: string): string {
+  let genesis_state;
+
+  try {
+    genesis_state = fs.readFileSync(genesis_path, "utf8");
+  } catch (err) {
+    throw Error("Cannot read genesis state from file: " + err);
+  }
+  return genesis_state.trim();
+}
+
+async function register_parachain_new(
+  api: ApiPromise,
+  id: string,
+  wasm: string,
+  header: string,
+  nonce: number,
+  finalization = false
+) {
+  return new Promise<void>(async (resolvePromise, reject) => {
+    await cryptoWaitReady();
+
+    const keyring = new Keyring({ type: "sr25519" });
+    const alice = keyring.addFromUri("//Alice");
+
+    const paraGenesisArgs = {
+      genesis_head: header,
+      validation_code: wasm,
+      parachain: true,
+    };
+    const genesis = api.createType("ParaGenesisArgs", paraGenesisArgs);
+
+    console.log(
+      `Submitting extrinsic to register parachain ${id}. nonce: ${nonce}`
+    );
+
+    const unsub = await api.tx.sudo
+      .sudo(api.tx.parasSudoWrapper.sudoScheduleParaInitialize(id, genesis))
+      .signAndSend(alice, { nonce: nonce, era: 0 }, (result) => {
+        console.log(`Current status is ${result.status}`);
+        if (result.status.isInBlock) {
+          console.log(
+            `Transaction included at blockhash ${result.status.asInBlock}`
+          );
+          if (finalization) {
+            console.log("Waiting for finalization...");
+          } else {
+            unsub();
+            resolvePromise();
+          }
+        } else if (result.status.isFinalized) {
+          console.log(
+            `Transaction finalized at blockHash ${result.status.asFinalized}`
+          );
+          unsub();
+          resolvePromise();
+        } else if (result.isError) {
+          console.log(`Transaction error`);
+          reject(`Transaction error`);
+        }
+      });
+  });
 }
 
 async function register_parachain(
@@ -202,6 +318,27 @@ async function test_parachain(
 }
 function run() {
   const parser = yargs(process.argv.slice(2))
+    .command({
+      command: "register_parachains <config_path> [ws_url]",
+      describe: "Register parachains with a given config",
+      builder: (yargs) =>
+        yargs
+          .positional("config_path", {
+            type: "string",
+            describe: "path to config which parachains to launch",
+          })
+          .positional("ws_url", {
+            type: "string",
+            describe: "path to websocket api point",
+            default: "ws://localhost:8080",
+          }),
+      handler: async (
+        args: yargs.Arguments<{
+          config_path: string;
+          ws_url: string;
+        }>
+      ): Promise<void> => register_parachains(args.config_path, args.ws_url),
+    })
     .command({
       command:
         "register_parachain <wasm_path> <header_data> <para_id> [is_parachain] [ws_url]",
