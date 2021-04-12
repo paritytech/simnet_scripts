@@ -112,6 +112,7 @@ async function register_parachain(
         console.log(
           `Transaction included at blockHash ${result.status.asInBlock}`
         );
+        unsub();
       } else if (result.status.isFinalized) {
         console.log(
           `Transaction finalized at blockHash ${result.status.asFinalized}`
