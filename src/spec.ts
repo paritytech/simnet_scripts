@@ -1,5 +1,6 @@
 import { Keyring } from "@polkadot/api";
 import { cryptoWaitReady } from "@polkadot/util-crypto";
+import { encodeAddress } from "@polkadot/util-crypto";
 import * as fs from "fs";
 import * as readline from "readline";
 
@@ -81,6 +82,7 @@ export async function addAuthorities(
 
   const sr_keyring = new Keyring({ type: "sr25519" });
   const ed_keyring = new Keyring({ type: "ed25519" });
+  const ec_keyring = new Keyring({ type: "ecdsa" });
 
   const rawdata = fs.readFileSync(spec, "utf8");
   const chainSpec = JSON.parse(rawdata);
@@ -91,7 +93,9 @@ export async function addAuthorities(
   for (const name of names) {
     const sr_account = sr_keyring.createFromUri(`//${nameCase(name)}`);
     const sr_stash = sr_keyring.createFromUri(`//${nameCase(name)}//stash`);
+
     const ed_account = ed_keyring.createFromUri(`//${nameCase(name)}`);
+    const ec_account = ec_keyring.createFromUri(`//${nameCase(name)}`);
 
     const key = [
       sr_stash.address,
@@ -103,6 +107,7 @@ export async function addAuthorities(
         authority_discovery: sr_account.address,
         para_validator: sr_account.address,
         para_assignment: sr_account.address,
+        beefy: encodeAddress(ec_account.publicKey),
       },
     ];
 
