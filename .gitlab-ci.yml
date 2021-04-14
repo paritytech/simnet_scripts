@@ -1,5 +1,6 @@
 stages:
   - build
+  - test
   - post-merge
 
 
@@ -58,24 +59,35 @@ build-simnetscripts-image-and-push-temporarly-in-paritypr:
   after_script:
     - podman logout docker.io
 
-
-  # TODO: How to test that image is good
-      # test-simnetscripts-image:
-      #   variables:
-      #     <<:                            *global-vars
-      #   variables:
-      #     CONTAINER_IMAGE:               paritypr/simnetscripts
-      #   image:                           "${CONTAINER_IMAGE}:${CI_COMMIT_SHORT_SHA}"
-      #   interruptible:                   true
-      #   stage:                           post-build
-      #   tags:
-      #     - parity-simnetscripts
-      #   needs:
-      #     - job:                         build-simnetscripts-image-and-push-temporarly-in-paritypr
-      #   script:
-      #     - echo "LOG INFO step 6 test image ${CONTAINER_IMAGE}:${CI_COMMIT_SHORT_SHA} "
-      #     - /home/nonroot/gurke/scripts/run-test-environment-manager.sh -t run-external-tool-test.sh
-      #   retry: 2
+parachains-full-test-set:          &parachains-tests
+  tags:
+    - parity-simnetscripts-build
+  stage:                           test
+  image:                           quay.io/podman/stable
+  interruptible:                   true
+  variables:
+    # IMAGE_NAME:                docker.io/parity/rococo
+    IMAGE_NAME:                "docker.io/paritypr/synth-wave"
+    # IMAGE_TAG:                 rococo-v1
+    IMAGE_TAG:                 master
+    COLLATOR_IMAGE_TAG:                 master
+    # COLLATOR_IMAGE_TAG:        master
+  before_script:
+    - echo "'${CI_PIPELINE_SOURCE}' type trigger."
+    - echo "Image under test '${IMAGE_NAME}:${IMAGE_TAG}'."
+    - echo "Collator image 'docker.io/paritypr/colander:${COLLATOR_IMAGE_TAG}'."
+    - test "$DOCKER_SIMNET_USER" -a "$DOCKER_SIMNET_PASS" ||
+        ( echo "No docker credentials provided"; exit 1 )
+  script:
+    - podman pull "docker.io/paritytech/simnetscripts:latest"
+    - podman pull "${IMAGE_NAME}:${IMAGE_TAG}"
+    - podman run
+           --volume "$(pwd)"/testing:/home/nonroot/gurke/testing
+           --volume /etc/gurke/:/etc/gurke/
+           paritytech/simnetscripts:latest
+                  scripts/run-test-environment-manager.sh
+                   --test-script=../testing/parachains/run_tests.sh
+                   --image="${IMAGE_NAME}:${IMAGE_TAG}"
 
 push-simnetscripts-image-to-paritytech:
   variables:
