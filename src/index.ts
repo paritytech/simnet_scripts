@@ -93,7 +93,7 @@ async function register_parachains(
     const wasm_data = read_genesis_wasm(parachain.wasm_path);
     const genesis_state = read_genesis_state(parachain.genesis_path);
 
-    await register_parachain_new(
+    await register_parachain(
       api,
       parachain.id,
       wasm_data,
@@ -103,6 +103,8 @@ async function register_parachains(
 
     nonce += 1;
   }
+
+  await api.disconnect();
 }
 
 function read_genesis_wasm(wasm_path: string): string {
@@ -128,7 +130,7 @@ function read_genesis_state(genesis_path: string): string {
   return genesis_state.trim();
 }
 
-async function register_parachain_new(
+async function register_parachain(
   api: ApiPromise,
   id: string,
   wasm: string,
@@ -179,66 +181,6 @@ async function register_parachain_new(
         }
       });
   });
-}
-
-async function register_parachain(
-  wasm_path: string,
-  header_path: string,
-  para_id: number,
-  is_parachain: boolean,
-  ws_url: string
-): Promise<void> {
-  await cryptoWaitReady();
-  let wasm_data = "";
-  try {
-    wasm_data = fs.readFileSync(wasm_path, "utf8");
-    wasm_data = wasm_data.trim();
-  } catch (err) {
-    throw Error("Cannot read wasm from file: " + err);
-  }
-  let header_data = "";
-  try {
-    header_data = fs.readFileSync(header_path, "utf8");
-    header_data = header_data.trim();
-  } catch (err) {
-    throw Error("Cannot read header from file: " + err);
-  }
-
-  const keyring = new Keyring({ type: "sr25519" });
-  const alice = keyring.addFromUri("//Alice");
-  const api = await createApi("", ws_url);
-  const aliceNonce = (
-    await api.query.system.account(alice.address)
-  ).nonce.toNumber();
-
-  const paraGenesisArgs = {
-    genesis_head: header_data,
-    validation_code: wasm_data,
-    parachain: true,
-  };
-
-  const genesis = api.createType("ParaGenesisArgs", paraGenesisArgs);
-
-  console.log(`Submitting extrinsic to register parachain ${para_id}.`);
-  const unsub = await api.tx.sudo
-    .sudo(api.tx.parasSudoWrapper.sudoScheduleParaInitialize(para_id, genesis))
-    .signAndSend(alice, { nonce: aliceNonce, era: 0 }, (result) => {
-      console.log(`Current status is ${result.status}`);
-      if (result.status.isInBlock) {
-        console.log(
-          `Transaction included at blockHash ${result.status.asInBlock}`
-        );
-        unsub();
-      } else if (result.status.isFinalized) {
-        console.log(
-          `Transaction finalized at blockHash ${result.status.asFinalized}`
-        );
-        unsub();
-      }
-    });
-
-  await new Promise((r) => setTimeout(r, 8000));
-  await api.disconnect();
 }
 
 async function test_registration(
@@ -376,14 +318,28 @@ function run() {
           is_parachain: boolean;
           ws_url: string;
         }>
-      ): Promise<void> =>
-        register_parachain(
-          args.wasm_path,
-          args.header_data,
-          args.para_id,
-          args.is_parachain,
-          args.ws_url
-        ),
+      ): Promise<void> => {
+        await cryptoWaitReady();
+
+        const keyring = new Keyring({ type: "sr25519" });
+        const alice = keyring.addFromUri("//Alice");
+        const api = await createApi("", args.ws_url);
+        const nonce = (
+          await api.query.system.account(alice.address)
+        ).nonce.toNumber();
+        const wasm_data = read_genesis_wasm(args.wasm_path);
+        const genesis_state = read_genesis_state(args.header_data);
+
+        await register_parachain(
+          api,
+          String(args.para_id),
+          wasm_data,
+          genesis_state,
+          nonce
+        );
+
+        await api.disconnect();
+      },
     })
     .command({
       command:
