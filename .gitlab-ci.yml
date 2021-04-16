@@ -86,9 +86,9 @@ test-current-latest-container-image:
         ( echo "No docker credentials provided"; exit 1 )
   script:
     - cd /home/nonroot/gurke/scripts/
-    - ./run-test-environment-manager.sh  \
-        --test-script=../../simnet/testing/parachains/run_tests.sh \
-        --image="${PARACHAINS_IMAGE}:${PARACHAINS_IMAGE_TAG}" \
+    - ./run-test-environment-manager.sh  
+        --test-script=../../simnet/testing/parachains/run_tests.sh 
+        --image="${PARACHAINS_IMAGE}:${PARACHAINS_IMAGE_TAG}" 
         --image-2="${COLLATOR_IMAGE}:${COLLATOR_IMAGE_TAG}"
 
 test-pr-container-image:          
@@ -117,9 +117,9 @@ test-pr-container-image:
         ( echo "No docker credentials provided"; exit 1 )
   script:
     - cd /home/nonroot/gurke/scripts/
-    - ./run-test-environment-manager.sh  \
-        --test-script=../../simnet/testing/parachains/run_tests.sh \
-        --image="${PARACHAINS_IMAGE}:${PARACHAINS_IMAGE_TAG}" \
+    - ./run-test-environment-manager.sh  
+        --test-script=../../simnet/testing/parachains/run_tests.sh 
+        --image="${PARACHAINS_IMAGE}:${PARACHAINS_IMAGE_TAG}" 
         --image-2="${COLLATOR_IMAGE}:${COLLATOR_IMAGE_TAG}"
 
 update-latest-container-image:
