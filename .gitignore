@@ -62,3 +62,5 @@ typings/
 
 /dist/
 yarn.lock
+
+.GITLAB_DEPLOY_TOKEN

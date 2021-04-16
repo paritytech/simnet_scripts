@@ -18,6 +18,7 @@ build-simnetscripts-image-and-push-temporarly-in-paritypr:
     CONTAINER_IMAGE:               paritypr/simnetscripts
   stage:                           build
   before_script:
+    - echo "Working with $CONTAINER_IMAGE:$CI_COMMIT_SHORT_SHA"
     - test "$DOCKER_SIMNET_USER" -a "$DOCKER_SIMNET_PASS" ||
         ( echo "No docker credentials provided"; exit 1 )
   script:
@@ -28,6 +29,7 @@ build-simnetscripts-image-and-push-temporarly-in-paritypr:
       whoami
       podman info
       df -h | grep /var/lib/containers
+      echo "${GITLAB_DEPLOY_TOKEN}" > .GITLAB_DEPLOY_TOKEN
       time podman run \
         --volume .:/build  \
         --volume /var/lib/containers/:/var/lib/containers \
@@ -66,15 +68,12 @@ parachains-full-test-set:          &parachains-tests
   image:                           quay.io/podman/stable
   interruptible:                   true
   variables:
-    # IMAGE_NAME:                docker.io/parity/rococo
-    IMAGE_NAME:                "docker.io/paritypr/synth-wave"
-    # IMAGE_TAG:                 rococo-v1
-    IMAGE_TAG:                 master
-    COLLATOR_IMAGE_TAG:                 master
-    # COLLATOR_IMAGE_TAG:        master
+    IMAGE_NAME:                    "docker.io/paritypr/synth-wave"
+    IMAGE_TAG:                     master
+    COLLATOR_IMAGE_TAG:            master
   before_script:
     - echo "'${CI_PIPELINE_SOURCE}' type trigger."
-    - echo "Image under test '${IMAGE_NAME}:${IMAGE_TAG}'."
+    - echo "Image under test '$CONTAINER_IMAGE:$CI_COMMIT_SHORT_SHA"
     - echo "Collator image 'docker.io/paritypr/colander:${COLLATOR_IMAGE_TAG}'."
     - test "$DOCKER_SIMNET_USER" -a "$DOCKER_SIMNET_PASS" ||
         ( echo "No docker credentials provided"; exit 1 )
@@ -84,7 +83,7 @@ parachains-full-test-set:          &parachains-tests
     - podman run
            --volume "$(pwd)"/testing:/home/nonroot/gurke/testing
            --volume /etc/gurke/:/etc/gurke/
-           paritytech/simnetscripts:latest
+           $CONTAINER_IMAGE:$CI_COMMIT_SHORT_SHA
                   scripts/run-test-environment-manager.sh
                    --test-script=../testing/parachains/run_tests.sh
                    --image="${IMAGE_NAME}:${IMAGE_TAG}"
