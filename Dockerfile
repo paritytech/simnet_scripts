@@ -32,6 +32,7 @@ RUN git clone https://gitlab+deploy-token-19:$(cat .GITLAB_DEPLOY_TOKEN)@gitlab.
 RUN chown -R nonroot. /home/nonroot
 
 # Use the non-root user to run our application
+ENV USER nonroot
 USER nonroot
 
 WORKDIR /home/nonroot/
