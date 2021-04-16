@@ -94,6 +94,8 @@ test-pr-container-image:
   tags:
     - parity-simnetscripts
   stage:                           test
+  needs:
+    job:                           build-simnetscripts-image-and-push-temporarly-in-paritypr
   interruptible:                   true
   variables:
     IMAGE_UNDER_TEST:              "paritypr/simnetscripts"
