@@ -19,12 +19,12 @@ build-simnetscripts-image-and-push-temporarly-in-paritypr:
     CONTAINER_IMAGE_TAG:           "${CI_COMMIT_SHORT_SHA}" 
   stage:                           build
   before_script:
-    - echo "Image that will be built ${CONTAINER_IMAGE}:${COLLATOR_IMAGE_TAG}"
+    - echo "Image that will be built ${CONTAINER_IMAGE}:${CONTAINER_IMAGE_TAG}"
     - test "${DOCKER_SIMNET_USER}" -a "${DOCKER_SIMNET_PASS}" ||
         ( echo "No docker credentials provided"; exit 1 )
   script:
     - |
-      echo "LOG INFO building container ${CONTAINER_IMAGE}:${COLLATOR_IMAGE_TAG}"
+      echo "LOG INFO building container ${CONTAINER_IMAGE}:${CONTAINER_IMAGE_TAG}"
       echo "${DOCKER_SIMNET_PASS}" \
            | podman login --username "${DOCKER_SIMNET_USER}" --password-stdin docker.io
       whoami
@@ -39,14 +39,14 @@ build-simnetscripts-image-and-push-temporarly-in-paritypr:
         quay.io/buildah/stable \
             buildah bud  \
               --layers=true  \
-              --cache-from  "${CONTAINER_IMAGE}:${COLLATOR_IMAGE_TAG}" \
-              --tag         "${CONTAINER_IMAGE}:${COLLATOR_IMAGE_TAG}" \
+              --cache-from  "${CONTAINER_IMAGE}:${CONTAINER_IMAGE_TAG}" \
+              --tag         "${CONTAINER_IMAGE}:${CONTAINER_IMAGE_TAG}" \
               /build 
-      echo "LOG INFO image ${CONTAINER_IMAGE}:${COLLATOR_IMAGE_TAG} built successfully"
+      echo "LOG INFO image ${CONTAINER_IMAGE}:${CONTAINER_IMAGE_TAG} built successfully"
       echo "$DOCKER_SIMNET_PASS" \
            | podman  login --username "$DOCKER_SIMNET_USER" --password-stdin docker.io
-      podman push --format=v2s2 "$CONTAINER_IMAGE:$CI_COMMIT_SHORT_SHA"
-      echo "LOG INFO ${CONTAINER_IMAGE}:${COLLATOR_IMAGE_TAG} pushed successfully"
+      podman push --format=v2s2 "$CONTAINER_IMAGE:$CONTAINER_IMAGE_TAG"
+      echo "LOG INFO ${CONTAINER_IMAGE}:${CONTAINER_IMAGE_TAG} pushed successfully"
       echo "LOG check if need to cleanup dangling images"
       df -h | grep /var/lib/containers
       CACHE_USE_PERCENT="$(df -h | grep -vE '/var/lib/containers/.*' | grep /var/lib/containers | awk '{print $5}' | sed 's/%//g')"
