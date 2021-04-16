@@ -1,7 +1,7 @@
 stages:
   - build
   - test
-  - post-merge
+  - update-container-image-latest
 
 
 variables:                         &global-vars
@@ -15,17 +15,18 @@ build-simnetscripts-image-and-push-temporarly-in-paritypr:
     - parity-simnetscripts-build
   variables:
     # random name to replace simnetscripts until we will have private docker repo 
-    CONTAINER_IMAGE:               paritypr/simnetscripts
+    CONTAINER_IMAGE:               "paritypr/simnetscripts"
+    CONTAINER_IMAGE_TAG:           "${CI_COMMIT_SHORT_SHA}" 
   stage:                           build
   before_script:
-    - echo "Working with $CONTAINER_IMAGE:$CI_COMMIT_SHORT_SHA"
-    - test "$DOCKER_SIMNET_USER" -a "$DOCKER_SIMNET_PASS" ||
+    - echo "Image that will be built ${CONTAINER_IMAGE}:${COLLATOR_IMAGE_TAG}"
+    - test "${DOCKER_SIMNET_USER}" -a "${DOCKER_SIMNET_PASS}" ||
         ( echo "No docker credentials provided"; exit 1 )
   script:
     - |
-      echo "LOG INFO step 4 build container image $CONTAINER_IMAGE:$CI_COMMIT_SHORT_SHA"
-      echo "$DOCKER_SIMNET_PASS" \
-           | podman login --username "$DOCKER_SIMNET_USER" --password-stdin docker.io
+      echo "LOG INFO building container ${CONTAINER_IMAGE}:${COLLATOR_IMAGE_TAG}"
+      echo "${DOCKER_SIMNET_PASS}" \
+           | podman login --username "${DOCKER_SIMNET_USER}" --password-stdin docker.io
       whoami
       podman info
       df -h | grep /var/lib/containers
@@ -38,80 +39,112 @@ build-simnetscripts-image-and-push-temporarly-in-paritypr:
         quay.io/buildah/stable \
             buildah bud  \
               --layers=true  \
-              --cache-from  "$CONTAINER_IMAGE:$CI_COMMIT_SHORT_SHA" \
-              --tag         "$CONTAINER_IMAGE:$CI_COMMIT_SHORT_SHA" \
+              --cache-from  "${CONTAINER_IMAGE}:${COLLATOR_IMAGE_TAG}" \
+              --tag         "${CONTAINER_IMAGE}:${COLLATOR_IMAGE_TAG}" \
               /build 
-      echo "LOG INFO step 5 image $CONTAINER_IMAGE:$CI_COMMIT_SHORT_SHA built successfully"
+      echo "LOG INFO image ${CONTAINER_IMAGE}:${COLLATOR_IMAGE_TAG} built successfully"
       echo "$DOCKER_SIMNET_PASS" \
            | podman  login --username "$DOCKER_SIMNET_USER" --password-stdin docker.io
       podman push --format=v2s2 "$CONTAINER_IMAGE:$CI_COMMIT_SHORT_SHA"
-      echo "LOG INFO step 6 image $CONTAINER_IMAGE:$CI_COMMIT_SHORT_SHA pushed successfully"
+      echo "LOG INFO ${CONTAINER_IMAGE}:${COLLATOR_IMAGE_TAG} pushed successfully"
       echo "LOG check if need to cleanup dangling images"
       df -h | grep /var/lib/containers
       CACHE_USE_PERCENT="$(df -h | grep -vE '/var/lib/containers/.*' | grep /var/lib/containers | awk '{print $5}' | sed 's/%//g')"
-      test -n "$CACHE_USE_PERCENT" \
+      test -n "${CACHE_USE_PERCENT}" \
               || ( echo "This variable can't be emtpy" ; exit 1 )
-      if test "$CACHE_USE_PERCENT" -ge 80 ; then 
-        echo "LOG INFO need to cleanup cache, value: $CACHE_USE_PERCENT"
+      if test "${CACHE_USE_PERCENT}" -ge 80 ; then 
+        echo "LOG INFO need to cleanup cache, value: ${CACHE_USE_PERCENT}"
         time podman rmi -f $(podman images -q -f "dangling=true")
       else 
-        echo "LOG INFO No Cleanup needed this time value: $CACHE_USE_PERCENT"
+        echo "LOG INFO No Cleanup needed this time value: ${CACHE_USE_PERCENT}"
       fi
   retry: 1
   after_script:
     - podman logout docker.io
 
-parachains-full-test-set:          &parachains-tests
+test-current-latest-container-image:
+  stage:                           build
   tags:
-    - parity-simnetscripts-build
-  stage:                           test
-  image:                           quay.io/podman/stable
-  interruptible:                   true
+    - parity-simnetscripts
   variables:
-    IMAGE_NAME:                    "docker.io/paritypr/synth-wave"
-    IMAGE_TAG:                     master
-    COLLATOR_IMAGE_TAG:            master
+    IMAGE_UNDER_TEST:              "paritytech/simnetscripts"
+    IMAGE_UNDER_TEST_TAG:          "latest"
+    PARACHAINS_IMAGE:              "docker.io/paritypr/synth-wave"
+    # there is no master tag for docker.io/paritypr/synth-wave
+    # Error response from daemon: manifest for paritypr/synth-wave:master not found: manifest unknown: manifest unknown
+    PARACHAINS_IMAGE_TAG:          "2714"
+    COLLATOR_IMAGE:                "docker.io/paritypr/colander"
+    COLLATOR_IMAGE_TAG:            "master"
+  image:                           "${IMAGE_UNDER_TEST}:${IMAGE_UNDER_TEST_TAG}"
+  interruptible:                    true
   before_script:
     - echo "'${CI_PIPELINE_SOURCE}' type trigger."
-    - echo "Image under test '$CONTAINER_IMAGE:$CI_COMMIT_SHORT_SHA"
-    - echo "Collator image 'docker.io/paritypr/colander:${COLLATOR_IMAGE_TAG}'."
+    - echo "Image under test '${IMAGE_UNDER_TEST}:${IMAGE_UNDER_TEST_TAG}'"
+    - echo "Parachians image '${PARACHAINS_IMAGE}:${PARACHAINS_IMAGE_TAG}'."
+    - echo "Collator image   '${COLLATOR_IMAGE}:${COLLATOR_IMAGE_TAG}'."
     - test "$DOCKER_SIMNET_USER" -a "$DOCKER_SIMNET_PASS" ||
         ( echo "No docker credentials provided"; exit 1 )
   script:
-    - podman pull "docker.io/paritytech/simnetscripts:latest"
-    - podman pull "${IMAGE_NAME}:${IMAGE_TAG}"
-    - podman run
-           --volume "$(pwd)"/testing:/home/nonroot/gurke/testing
-           --volume /etc/gurke/:/etc/gurke/
-           $CONTAINER_IMAGE:$CI_COMMIT_SHORT_SHA
-                  scripts/run-test-environment-manager.sh
-                   --test-script=../testing/parachains/run_tests.sh
-                   --image="${IMAGE_NAME}:${IMAGE_TAG}"
+    - gurke/scripts/run-test-environment-manager.sh  \
+        --test-script=../../simnet/testing/parachains/run_tests.sh \
+        --image="${PARACHAINS_IMAGE}:${PARACHAINS_IMAGE_TAG}" \
+        --image-2="${COLLATOR_IMAGE}:${COLLATOR_IMAGE_TAG}"
 
-push-simnetscripts-image-to-paritytech:
+test-pr-container-image:          
+  tags:
+    - parity-simnetscripts
+  stage:                           test
+  interruptible:                   true
+  variables:
+    IMAGE_UNDER_TEST:              "paritypr/simnetscripts"
+    IMAGE_UNDER_TEST_TAG:          "${CI_COMMIT_SHORT_SHA}"
+    PARACHAINS_IMAGE:              "docker.io/paritypr/synth-wave"
+    # there is no master tag for docker.io/paritypr/synth-wave
+    # Error response from daemon: manifest for paritypr/synth-wave:master not found: manifest unknown: manifest unknown
+    PARACHAINS_IMAGE_TAG:          "2714"
+    COLLATOR_IMAGE:                "docker.io/paritypr/colander"
+    COLLATOR_IMAGE_TAG:            "master"
+  image:                           "${IMAGE_UNDER_TEST}:${IMAGE_UNDER_TEST_TAG}"
+  before_script:
+    - echo "Trigger type     ${CI_PIPELINE_SOURCE}'"
+    - echo "Image under test '${IMAGE_UNDER_TEST}:${IMAGE_UNDER_TEST_TAG}"
+    - echo "Parachians image '${PARACHAINS_IMAGE}:${PARACHAINS_IMAGE_TAG}'."
+    - echo "Collator image   '${COLLATOR_IMAGE}:${COLLATOR_IMAGE_TAG}'."
+    - test "${DOCKER_SIMNET_USER}" -a "${DOCKER_SIMNET_PASS}" ||
+        ( echo "No docker credentials provided"; exit 1 )
+  script:
+    - gurke/scripts/run-test-environment-manager.sh  \
+        --test-script=../../simnet/testing/parachains/run_tests.sh \
+        --image="${PARACHAINS_IMAGE}:${PARACHAINS_IMAGE_TAG}" \
+        --image-2="${COLLATOR_IMAGE}:${COLLATOR_IMAGE_TAG}"
+
+update-latest-container-image:
   variables:
     <<:                            *global-vars
-    UPSTREAM_BUILD_TRIGGER:        $BUILD_SIMNETSCRIPTS
-  stage:                           post-merge
-#  needs:
-#    - job:                         test-simnetscripts-image
-  image:                           quay.io/buildah/stable
+    UPSTREAM_BUILD_TRIGGER:        ${BUILD_SIMNETSCRIPTS}
+    PR_IMAGE:                      "paritypr/simnetscripts"
+    PR_IMAGE_TAG:                  "${CI_COMMIT_SHORT_SHA}"           
+    PUSH_IMAGE:                    "paritytech/simnetscripts"
+    PUSH_IMAGE_TAG:                "latest"
+  stage:                            update-container-image-latest
+  needs:
+    - job:                          test-pr-container-image
+  image:                            quay.io/buildah/stable
   rules:
     - if: '$CI_COMMIT_BRANCH == "main"'
     - if: '$UPSTREAM_BUILD_TRIGGER == "true"'
   tags:
-    - parity-simnetscripts-build
+    - parity-simnetscripts
   before_script:
-    - test "$Docker_Hub_User_Parity" -a "$Docker_Hub_Pass_Parity" ||
+    - test "${Docker_Hub_User_Parity}" -a "${Docker_Hub_Pass_Parity}" ||
         ( echo "no docker credentials provided"; exit 1 )
   script:
-    - echo "LOG INFO step 7 update paritytech/simnetscripts:latest"
-    - echo "$Docker_Hub_Pass_Parity" |
-        buildah login --username "$Docker_Hub_User_Parity" --password-stdin docker.io
+    - echo "LOG INFO pushing latest image  ${PUSH_IMAGE}:${PUSH_IMAGE_TAG}"
+    - echo "${Docker_Hub_Pass_Parity}" |
+        buildah login --username "${Docker_Hub_User_Parity}" --password-stdin docker.io
     - buildah info
-    - 'buildah pull "paritypr/simnetscripts:$CI_COMMIT_SHORT_SHA"'
-    - 'buildah tag "paritypr/simnetscripts:$CI_COMMIT_SHORT_SHA" paritytech/simnetscripts:latest'
-    - 'buildah push --format=v2s2 paritytech/simnetscripts:latest'
+    - 'buildah pull "${PR_IMAGE}:${PR_IMAGE_TAG}"'
+    - 'buildah tag "${PR_IMAGE}:${PR_IMAGE_TAG}" "${PUSH_IMAGE}:${PUSH_IMAGE_TAG}"'
+    - 'buildah push --format=v2s2 "${PUSH_IMAGE}:${PUSH_IMAGE_TAG}"'
   after_script:
     - buildah logout docker.io
-# dummy
