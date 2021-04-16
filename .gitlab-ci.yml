@@ -85,6 +85,7 @@ test-current-latest-container-image:
     - test "$DOCKER_SIMNET_USER" -a "$DOCKER_SIMNET_PASS" ||
         ( echo "No docker credentials provided"; exit 1 )
   script:
+    - pwd ; ls -la
     - gurke/scripts/run-test-environment-manager.sh  \
         --test-script=../../simnet/testing/parachains/run_tests.sh \
         --image="${PARACHAINS_IMAGE}:${PARACHAINS_IMAGE_TAG}" \
