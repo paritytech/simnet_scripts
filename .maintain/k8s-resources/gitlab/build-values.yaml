@@ -384,12 +384,12 @@ securityContext:
 ## ref: http://kubernetes.io/docs/user-guide/compute-resources/
 ##
 resources: {}
-  # limits:
-  #   memory: 256Mi
-  #   cpu: 200m
-  # requests:
-  #   memory: 128Mi
-  #   cpu: 100m
+  limits:
+    memory: 2Gi
+    cpu: 900m
+  requests:
+    memory: 1Gi
+    cpu: 500m
 
 ## Affinity for pod assignment
 ## Ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
