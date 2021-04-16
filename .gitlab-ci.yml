@@ -150,3 +150,4 @@ update-latest-container-image:
     - 'buildah push --format=v2s2 "${PUSH_IMAGE}:${PUSH_IMAGE_TAG}"'
   after_script:
     - buildah logout docker.io
+# dummy
