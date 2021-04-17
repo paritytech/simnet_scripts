@@ -103,10 +103,12 @@ test-pr-container-image:
   variables:
     IMAGE_UNDER_TEST:              "paritypr/simnetscripts"
     IMAGE_UNDER_TEST_TAG:          "${CI_COMMIT_SHORT_SHA}"
-    PARACHAINS_IMAGE:              "docker.io/paritypr/synth-wave"
+    # use parity/polkadot as default until we will have paritypr/synth-wave:master
+    PARACHAINS_IMAGE:              "docker.io/parity/polkadot"
+    # PARACHAINS_IMAGE:              "docker.io/paritypr/synth-wave"
     # there is no master tag for docker.io/paritypr/synth-wave
     # Error response from daemon: manifest for paritypr/synth-wave:master not found: manifest unknown: manifest unknown
-    PARACHAINS_IMAGE_TAG:          "2714"
+    PARACHAINS_IMAGE_TAG:          "master"
     COLLATOR_IMAGE:                "docker.io/paritypr/colander"
     COLLATOR_IMAGE_TAG:            "master"
   image:                           "${IMAGE_UNDER_TEST}:${IMAGE_UNDER_TEST_TAG}"
