@@ -1,2 +1,2 @@
-docker build -t paritytech/simnetscripts:latest . && \
-docker push  paritytech/simnetscripts:latest 
+buuldah build -t paritytech/simnetscripts:latest . && \
+buuldah push  paritytech/simnetscripts:latest 
