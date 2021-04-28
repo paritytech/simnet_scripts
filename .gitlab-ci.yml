@@ -77,11 +77,10 @@ test-current-latest-container-image:
     - test "$DOCKER_SIMNET_USER" -a "$DOCKER_SIMNET_PASS" ||
         ( echo "No docker credentials provided"; exit 1 )
   script:
-    - cd /home/nonroot/gurke/scripts/
-    - ./run-test-environment-manager.sh  
-        --test-script=../simnet/testing/parachains/run_tests.sh 
-        --image="${PARACHAINS_IMAGE}:${PARACHAINS_IMAGE_TAG}" 
-        --image-2="${COLLATOR_IMAGE}:${COLLATOR_IMAGE_TAG}"
+    -  /home/nonroot/gurke/scripts/run-test-environment-manager.sh  
+          --test-script=../../simnet/testing/parachains/run_tests.sh 
+          --image="${PARACHAINS_IMAGE}:${PARACHAINS_IMAGE_TAG}" 
+          --image-2="${COLLATOR_IMAGE}:${COLLATOR_IMAGE_TAG}"
   allow_failure: true
 
 test-pr-container-image:          
