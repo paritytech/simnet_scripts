@@ -1,1 +1,1 @@
-docker build -t paritytech/simnetscripts:latest . 
+buildah build -t paritytech/simnetscripts:latest . 
