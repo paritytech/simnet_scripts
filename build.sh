@@ -1,1 +1,1 @@
-buildah bud -t paritytech/simnetscripts:latest . 
+buildah bud -t docker.io/paritypr/simnetscripts:latest . 
