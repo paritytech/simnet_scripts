@@ -63,7 +63,7 @@ test-current-latest-container-image:
   variables:
     IMAGE_UNDER_TEST:              "paritytech/simnetscripts"
     IMAGE_UNDER_TEST_TAG:          "latest"
-    PARACHAINS_IMAGE:              "docker.io/parity/synth-wave"
+    PARACHAINS_IMAGE:              "docker.io/paritypr/synth-wave"
     PARACHAINS_IMAGE_TAG:          "master"
     COLLATOR_IMAGE:                "docker.io/paritypr/colander"
     COLLATOR_IMAGE_TAG:            "master"
@@ -93,7 +93,7 @@ test-pr-container-image:
   variables:
     IMAGE_UNDER_TEST:              "paritypr/simnetscripts"
     IMAGE_UNDER_TEST_TAG:          "${CI_COMMIT_SHORT_SHA}"
-    PARACHAINS_IMAGE:              "docker.io/parity/synth-wave"
+    PARACHAINS_IMAGE:              "docker.io/paritypr/synth-wave"
     PARACHAINS_IMAGE_TAG:          "master"
     COLLATOR_IMAGE:                "docker.io/paritypr/colander"
     COLLATOR_IMAGE_TAG:            "master"

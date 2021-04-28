@@ -1,2 +1,2 @@
-buuldah build -t paritytech/simnetscripts:latest . && \
+buuldah bud -t paritytech/simnetscripts:latest . && \
 buuldah push  paritytech/simnetscripts:latest 

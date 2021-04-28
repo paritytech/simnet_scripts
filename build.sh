@@ -1,1 +1,1 @@
-buildah build -t paritytech/simnetscripts:latest . 
+buildah bud -t paritytech/simnetscripts:latest . 
