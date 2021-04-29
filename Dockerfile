@@ -29,6 +29,7 @@ WORKDIR /home/nonroot
 COPY .GITLAB_DEPLOY_TOKEN .
 # git clone https://<username>:<deploy_token>@gitlab.example.com/tanuki/awesome_project.git
 RUN git clone https://gitlab+deploy-token-19:$(cat .GITLAB_DEPLOY_TOKEN)@gitlab.parity.io/parity/simnet.git
+RUN rm .GITLAB_DEPLOY_TOKEN
 RUN chown -R nonroot. /home/nonroot
 
 # Use the non-root user to run our application
