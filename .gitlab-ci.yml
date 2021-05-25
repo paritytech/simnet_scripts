@@ -1,3 +1,10 @@
+stages:
+    - empty
+
+dummy:
+    stage: empty
+    script:
+        echo nothing to see here
 # stages:
 #   - build
 #   - test
