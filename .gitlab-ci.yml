@@ -3,8 +3,8 @@ stages:
 
 dummy:
   stage: empty
-    script:
-        echo nothing to see here
+  script:
+      - echo nothing to see here
   tags:
     - parity-simnet-build 
 # stages:
