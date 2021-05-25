@@ -1,8 +1,8 @@
-FROM paritytech/pickle_rick:latest
+FROM docker.io/paritytech/pickle_rick:latest
 USER root
 WORKDIR /root
 
-COPY --from=paritytech/pickle_rick:latest /home/nonroot/gurke /home/nonroot/gurke
+COPY --from=docker.io/paritytech/pickle_rick:latest /home/nonroot/gurke /home/nonroot/gurke
 
 # install nodejs 14.0 or >
 # https://github.com/nodesource/distributions/blob/master/README.md#installation-instructions
