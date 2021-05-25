@@ -2,9 +2,11 @@ stages:
     - empty
 
 dummy:
-    stage: empty
+  stage: empty
     script:
         echo nothing to see here
+  tags:
+    - parity-simnet-build 
 # stages:
 #   - build
 #   - test
