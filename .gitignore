@@ -61,4 +61,6 @@ typings/
 .next
 
 /dist/
+
 yarn.lock
+package-lock.json
