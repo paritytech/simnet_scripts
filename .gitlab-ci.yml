@@ -18,4 +18,3 @@ trigger-simnet-for-build-and-test:
         --image-tag=""
   tags:
     - parity-simnetscripts
-
