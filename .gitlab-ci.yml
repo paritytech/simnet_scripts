@@ -4,9 +4,9 @@ stages:
 trigger-simnet-for-build-and-test:
   stage:                     build-test
   variables: 
-    TRGR_REF:                "${CI_COMMIT_REF_NAME}"
-    # The branch or tag name for which project is built. 
     TRGR_PROJECT:            "${CI_PROJECT_NAME}"
+    # The branch or tag name for which project is built. 
+    TRGR_REF:                "${CI_COMMIT_REF_NAME}"
   trigger:
     project: simnet 
     branch: master
