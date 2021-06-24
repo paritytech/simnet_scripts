@@ -11,11 +11,10 @@ trigger-simnet-for-build-and-test:
     - echo 'TRGR_REF is ${TRGR_REF}'
     - ./scripts/trigger_pipeline.sh
         --simnet-version=master
-        --upstream-project=simnet_scripts
-        --upstream-ref="${TRGR_REF}"
+        --upstream-project="${CI_PROJECT_NAME}"
+        --upstream-ref="${CI_COMMIT_REF_NAME}"
         --downstream-id=332
         --image-name=""
         --image-tag=""
   tags:
     - parity-simnetscripts
-
