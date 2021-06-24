@@ -8,8 +8,9 @@ trigger-simnet-for-build-and-test:
     # The branch or tag name for which project is built. 
     TRGR_REF:                "${CI_COMMIT_REF_NAME}"
   trigger:
-    project: simnet 
-    branch: master
+    project:                  parity/simnet 
+    branch:                   master
+    strategy:                 depend
 
 
 
