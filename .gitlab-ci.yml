@@ -17,5 +17,5 @@ trigger-simnet-for-build-and-test:
         --image-name=""
         --image-tag=""
   tags:
-    - parity-gurke
+    - parity-simnetscripts
 
