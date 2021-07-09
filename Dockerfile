@@ -19,9 +19,9 @@ WORKDIR /home/nonroot/simnet_scripts
 COPY package.json package-lock.json tsconfig.json .
 COPY src/ src/
 
-RUN npm install  typescript
+RUN yarn add typescript
 # This will generate dist dir which is needed in order for the script to run
-RUN npm run build  
+RUN npm run build
 # place index.js in a place where gurke expects it
 RUN ln -s "$(pwd)"/dist/index.js /usr/local/bin/simnet_scripts
 
