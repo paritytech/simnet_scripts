@@ -43,7 +43,7 @@ async function showSystemEvents(api: ApiPromise) {
       console.log(
         `\t${event.section}:${event.method}:: (phase=${phase.toString()})`
       );
-      console.log(`\t\t${event.meta.documentation.toString()}`);
+      console.log(`\t\t${event.meta.docs.toString()}`);
 
       event.data.forEach((data, index) => {
         console.log(`\t\t\t${types[index].type}: ${data.toString()}`);
