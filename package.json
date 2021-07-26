@@ -14,9 +14,9 @@
     "prettier": "prettier"
   },
   "dependencies": {
-    "@polkadot/api": "^4.16.3-0",
-    "@polkadot/keyring": "^6.10.1",
-    "@polkadot/types": "^4.16.3-0",
+    "@polkadot/api": "^4.17.2-13",
+    "@polkadot/keyring": "^6.11.1",
+    "@polkadot/types": "^4.17.2-13",
     "@types/yargs": "15.0.5",
     "prettier": "^2.2.1",
     "yargs": "15.4.1"
