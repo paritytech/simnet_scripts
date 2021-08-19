@@ -31,27 +31,6 @@ function loadTypeDef(types: string): object {
   }
 }
 
-async function showSystemEvents(api: ApiPromise) {
-  console.log(`Show system events`);
-  api.query.system.events((events) => {
-    console.log(`\nReceived ${events.length} events:`);
-
-    events.forEach((record) => {
-      const { event, phase } = record;
-      const types = event.typeDef;
-
-      console.log(
-        `\t${event.section}:${event.method}:: (phase=${phase.toString()})`
-      );
-      console.log(`\t\t${event.meta.docs.toString()}`);
-
-      event.data.forEach((data, index) => {
-        console.log(`\t\t\t${types[index].type}: ${data.toString()}`);
-      });
-    });
-  });
-}
-
 async function createApi(types_path: string, url: string) {
   const provider = new WsProvider(url);
 
@@ -204,6 +183,20 @@ async function check_registration(
     throw Error(err_str);
   }
   console.log("Parachain is registered");
+  await api.disconnect();
+}
+
+async function retrieveLastBlock(
+  ws_url: string,
+  filename: string
+): Promise<void> {
+  const api = await createApi("", ws_url);
+
+  var signedBlock = await api.rpc.chain.getBlock();
+  console.log(`Latest block is ${signedBlock.toString()}`);
+  const data = signedBlock.block.header.number.toString();
+  fs.writeFileSync(filename, data);
+
   await api.disconnect();
 }
 
@@ -454,6 +447,28 @@ function run() {
         addAuthoritiesFromFile(args.spec_file, args.authorities_file);
       },
     })
+    .command({
+      command: "retrieve_best_block [ws_url] [filename]",
+      describe: "Retrieve last finalized block from the chain and store it in system variable",
+      builder: (yargs) =>
+        yargs
+          .positional("ws_url", {
+            type: "string",
+            describe: "path to websocket api point",
+            default: "ws://localhost:8080",
+          })
+          .positional("filename", {
+            type: "string",
+            describe: "File where to save the retrieved value",
+          }),
+      handler: async (
+        args: yargs.Arguments<{
+          ws_url: string;
+          filename: string;
+        }>
+      ): Promise<void> => retrieveLastBlock(args.ws_url, args.filename),
+    })
+
     .parserConfiguration({
       "parse-numbers": false,
       "parse-positional-numbers": false,
